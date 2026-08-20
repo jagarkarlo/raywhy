@@ -1,0 +1,32 @@
+name: clean-room
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  vocabulary-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Terms live in a separate file so this workflow does not match itself.
+      - name: Check for employer-specific vocabulary
+        run: |
+          if grep -rEIin --exclude-dir=.git --exclude=forbidden-terms.txt \
+               -f .github/forbidden-terms.txt .; then
+            echo "::error::Employer-specific vocabulary found. This repository must stay clean-room."
+            exit 1
+          fi
+          echo "Clean."
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
