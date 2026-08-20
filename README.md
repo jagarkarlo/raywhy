@@ -1,5 +1,13 @@
 # raywhy
 
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img alt="Ray" src="https://img.shields.io/badge/Ray-028CF0?style=for-the-badge" />
+  <img alt="Kubernetes" src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" />
+  <img alt="Prometheus" src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-3FB950?style=for-the-badge" />
+</p>
+
 **Explain why your Ray job is pending.**
 
 `raywhy` answers one question that Ray's dashboard cannot: *why is this job still
