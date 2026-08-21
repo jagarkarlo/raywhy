@@ -47,6 +47,12 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
         )
 
     request = _resources(job)
+    if not request:
+        return VerdictResult(
+            Verdict.UNKNOWN,
+            "The job has no normalized resource request to analyze.",
+            fix="Provide the job resource request or use a snapshot adapter that preserves it.",
+        )
     nodes = [node for node in snapshot.get("nodes", []) if isinstance(node, Mapping)]
     schedulable = [node for node in nodes if node.get("schedulable", True)]
     capacity = snapshot.get("capacity", {})

@@ -11,9 +11,9 @@ The whole value proposition, in the smallest shippable form.
 - [x] Fixture-driven classification for `UNSATISFIABLE` | `CONTENDED` | `AUTOSCALER_BLOCKED` | `NODES_UNAVAILABLE`
 - [x] Human-readable output with evidence and a concrete suggested fix
 - [x] `--json` for scripting
-- [ ] `raywhy job <submission-id>` against a Ray dashboard address
-- [ ] Read pending jobs via the Ray Job Submission API
-- [ ] Read node resource totals/availability via the Ray state API
+- [x] `raywhy job <submission-id> --address <ray-dashboard>` against a Ray dashboard address
+- [x] Read pending jobs via the Ray Job Submission API
+- [x] Read node resource totals/availability via the Ray cluster status API
 
 **Current result:** all four cases are covered by deterministic JSON fixtures and
 the standard-library test suite. The live API adapter remains deliberately
