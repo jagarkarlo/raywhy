@@ -37,38 +37,21 @@ by hand, by reading Ray logs and `kubectl describe` output side by side.
 
 `raywhy` distinguishes them for you.
 
-## What it looks like
+## What the v0.1 CLI looks like
 
 ```
-$ raywhy job raysubmit_a1b2c3
+$ raywhy job job-1 --snapshot tests/fixtures/unsatisfiable.json
 
-PENDING for 41m
-
-  Requests   1 placement group, STRICT_SPREAD
-             4 bundles x {GPU: 1, CPU: 2}
-
-  Verdict    UNSATISFIABLE
-             No node type in this cluster can satisfy the placement group.
-             STRICT_SPREAD requires 4 distinct nodes with >=1 GPU each.
-             Cluster has 2 GPU-capable nodes (max 2 by autoscaler config).
-
-  Fix        Relax to PACK/SPREAD, reduce to 2 bundles, or raise
-             maxReplicas on the GPU worker group above 4.
+UNSATISFIABLE
+Job       job-1
+Verdict   No schedulable node shape can satisfy this job's resource request.
+Evidence  Requested resources: {'GPU': 4.0, 'CPU': 8.0}
+Fix       Change the resource request or add a node type that can host it.
 ```
 
-```
-$ raywhy job raysubmit_d4e5f6
-
-PENDING for 6m
-
-  Requests   {GPU: 2, CPU: 8}
-
-  Verdict    CONTENDED
-             Shape is satisfiable. Resources are held by other work.
-             Head-of-line blocker: raysubmit_9z8y7x (RUNNING 3h12m, holds 2 GPU)
-
-  Fix        Wait, or raise priority. Nothing is misconfigured.
-```
+Live Ray API access, placement-group detail, pending duration, and blocker
+attribution are v0.2 work. The examples from those future capabilities belong in
+the roadmap, not in the current CLI contract.
 
 ## Non-goals
 

@@ -53,11 +53,21 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
     if not isinstance(capacity, Mapping):
         capacity = {}
 
+    autoscaler = snapshot.get("autoscaler", {})
+    if isinstance(autoscaler, Mapping) and autoscaler.get("blocked"):
+        reason = str(autoscaler.get("reason", "the autoscaler reported a block"))
+        return VerdictResult(
+            Verdict.AUTOSCALER_BLOCKED,
+            "The request could fit, but the autoscaler is preventing capacity from being added.",
+            [reason],
+            "Inspect autoscaler limits, quotas, cooldowns, and worker-group max replicas.",
+        )
+
     unavailable = [node for node in nodes if node.get("condition") not in (None, "Ready")]
-    if nodes and not schedulable:
+    if not nodes or not schedulable:
         return VerdictResult(
             Verdict.NODES_UNAVAILABLE,
-            "The cluster has no schedulable nodes for this request.",
+            "The snapshot reports no schedulable nodes for this request.",
             [f"Unavailable nodes: {len(unavailable) or len(nodes)}"],
             "Restore node readiness, remove the cordon, or inspect node taints and image state.",
         )
@@ -70,28 +80,10 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
             "Change the resource request or add a node type that can host it.",
         )
 
-    autoscaler = snapshot.get("autoscaler", {})
-    if isinstance(autoscaler, Mapping) and autoscaler.get("blocked"):
-        reason = str(autoscaler.get("reason", "the autoscaler reported a block"))
-        return VerdictResult(
-            Verdict.AUTOSCALER_BLOCKED,
-            "The request could fit, but the autoscaler is preventing capacity from being added.",
-            [reason],
-            "Inspect autoscaler limits, quotas, cooldowns, and worker-group max replicas.",
-        )
-
     available = _total_available(schedulable)
-    if _fits(request, available):
-        return VerdictResult(
-            Verdict.CONTENDED,
-            "The request is valid, but the currently available resources are fragmented or held by other work.",
-            [f"Available resources: {available or 'none'}"],
-            "Wait for resources to be released or inspect the jobs currently holding them.",
-        )
-
     return VerdictResult(
         Verdict.CONTENDED,
-        "The request is valid, but the required resources are currently held by other work.",
+        "The request is valid, but resources are currently held by other work.",
         [f"Available resources: {available or 'none'}"],
         "Wait for resources to be released or inspect the jobs currently holding them.",
     )
