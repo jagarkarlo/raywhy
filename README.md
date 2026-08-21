@@ -82,9 +82,50 @@ PENDING for 6m
 It reads the Ray Job Submission API, the Ray state API, and the Kubernetes API,
 and it explains what it finds.
 
+## v0.1 today
+
+The first release proves the verdict engine against a small normalized snapshot
+format. The CLI is deliberately read-only and adapter-independent while the Ray
+API mapping is developed:
+
+```bash
+python -m pip install -e .
+raywhy job job-1 --snapshot snapshot.json
+raywhy job job-1 --snapshot snapshot.json --json
+```
+
+The snapshot contract contains `jobs`, `nodes`, and optional `autoscaler` data:
+
+```json
+{
+  "jobs": {
+    "job-1": {
+      "state": "PENDING",
+      "request": {"resources": {"GPU": 2, "CPU": 8}}
+    }
+  },
+  "nodes": [
+    {
+      "id": "gpu-a",
+      "schedulable": true,
+      "condition": "Ready",
+      "total": {"GPU": 4, "CPU": 32},
+      "available": {"GPU": 0, "CPU": 4}
+    }
+  ],
+  "autoscaler": {"blocked": true, "reason": "worker group reached maxReplicas"}
+}
+```
+
+The engine returns `UNSATISFIABLE`, `CONTENDED`, `AUTOSCALER_BLOCKED`,
+`NODES_UNAVAILABLE`, or `UNKNOWN`, with evidence and a suggested next action.
+The four known-cause fixtures under `tests/fixtures/` are the executable
+contract for v0.1.
+
 ## Status
 
-**Pre-alpha.** Nothing works yet. See [ROADMAP.md](ROADMAP.md).
+**Pre-alpha.** The fixture-driven verdict engine and CLI are working; live Ray
+and Kubernetes adapters are next. See [ROADMAP.md](ROADMAP.md).
 
 ## Contributing
 

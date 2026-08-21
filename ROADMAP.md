@@ -7,15 +7,17 @@ stops after any phase, what exists still solves a real problem.
 
 The whole value proposition, in the smallest shippable form.
 
+- [x] Pure verdict engine over a normalized, read-only snapshot
+- [x] Fixture-driven classification for `UNSATISFIABLE` | `CONTENDED` | `AUTOSCALER_BLOCKED` | `NODES_UNAVAILABLE`
+- [x] Human-readable output with evidence and a concrete suggested fix
+- [x] `--json` for scripting
 - [ ] `raywhy job <submission-id>` against a Ray dashboard address
 - [ ] Read pending jobs via the Ray Job Submission API
 - [ ] Read node resource totals/availability via the Ray state API
-- [ ] Classify into one verdict: `UNSATISFIABLE` | `CONTENDED` | `AUTOSCALER_BLOCKED` | `NODES_UNAVAILABLE`
-- [ ] Human-readable output with a concrete suggested fix
-- [ ] `--json` for scripting
 
-**Done when:** it correctly classifies all four cases against a local kind
-cluster with fixtures that reproduce each one.
+**Current result:** all four cases are covered by deterministic JSON fixtures and
+the standard-library test suite. The live API adapter remains deliberately
+unimplemented until the normalized contract is stable.
 
 ## v0.2 — Placement groups and blame
 
