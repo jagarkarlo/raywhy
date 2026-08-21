@@ -31,6 +31,14 @@ class VerdictTests(unittest.TestCase):
         result = explain_pending_job({"jobs": {}}, "missing")
         self.assertIs(result.verdict, Verdict.UNKNOWN)
 
+    def test_zero_node_snapshot_is_not_unsatisfiable(self):
+        snapshot = {
+            "jobs": {"job-1": {"state": "PENDING", "request": {"resources": {"GPU": 1}}}},
+            "nodes": [],
+        }
+        result = explain_pending_job(snapshot, "job-1")
+        self.assertIs(result.verdict, Verdict.NODES_UNAVAILABLE)
+
     def test_cli_json_output(self):
         process = subprocess.run(
             [
@@ -52,4 +60,3 @@ class VerdictTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    assert '"verdict": "UNSATISFIABLE"' in process.stdout
