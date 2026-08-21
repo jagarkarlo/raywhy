@@ -1,0 +1,12 @@
+{
+  "jobs": {
+    "job-1": {
+      "state": "PENDING",
+      "request": {"resources": {"GPU": 4, "CPU": 8}}
+    }
+  },
+  "nodes": [
+    {"id": "gpu-a", "schedulable": true, "condition": "Ready", "total": {"GPU": 2, "CPU": 16}},
+    {"id": "gpu-b", "schedulable": true, "condition": "Ready", "total": {"GPU": 2, "CPU": 16}}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "jobs": {
+    "job-1": {
+      "state": "PENDING",
+      "request": {"resources": {"GPU": 2, "CPU": 8}}
+    }
+  },
+  "nodes": [
+    {"id": "gpu-a", "schedulable": true, "condition": "Ready", "total": {"GPU": 4, "CPU": 32}, "available": {"GPU": 0, "CPU": 4}}
+  ],
+  "autoscaler": {"blocked": true, "reason": "worker group reached maxReplicas"}
+}
