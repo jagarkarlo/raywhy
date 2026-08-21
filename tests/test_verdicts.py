@@ -2,8 +2,11 @@ import json
 import subprocess
 import sys
 import unittest
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from threading import Thread
 
+from raywhy.ray_api import RayDashboardClient, normalize_ray_payloads
 from raywhy.models import Verdict
 from raywhy.verdicts import explain_pending_job
 
@@ -38,6 +41,55 @@ class VerdictTests(unittest.TestCase):
         }
         result = explain_pending_job(snapshot, "job-1")
         self.assertIs(result.verdict, Verdict.NODES_UNAVAILABLE)
+
+    def test_missing_request_is_not_guessed(self):
+        snapshot = {
+            "jobs": {"job-1": {"state": "PENDING"}},
+            "nodes": [{"total": {"GPU": 4}, "available": {"GPU": 4}}],
+        }
+        result = explain_pending_job(snapshot, "job-1")
+        self.assertIs(result.verdict, Verdict.UNKNOWN)
+
+    def test_normalizes_ray_payloads(self):
+        snapshot = normalize_ray_payloads(
+            [{"submission_id": "job-1", "status": "pending", "resources": {"GPU": 1}}],
+            {"nodes": [{"node_id": "node-a", "resources_total": {"GPU": 2}, "resources_available": {"GPU": 1}}]},
+            "job-1",
+        )
+        self.assertEqual(snapshot["jobs"]["job-1"]["request"]["resources"]["GPU"], 1.0)
+        self.assertEqual(snapshot["nodes"][0]["id"], "node-a")
+
+    def test_live_client_reads_only_get_endpoints(self):
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                payload = (
+                    [{"submission_id": "job-1", "status": "PENDING", "resources": {"GPU": 1}}]
+                    if self.path == "/api/jobs/"
+                    else {"nodes": [{"node_id": "node-a", "resources_total": {"GPU": 2}, "resources_available": {"GPU": 1}}]}
+                )
+                encoded = json.dumps(payload).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(encoded)))
+                self.end_headers()
+                self.wfile.write(encoded)
+
+            def do_POST(self):
+                self.send_response(405)
+                self.end_headers()
+
+            def log_message(self, *_):
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            snapshot = RayDashboardClient(f"http://127.0.0.1:{server.server_port}").snapshot("job-1")
+            result = explain_pending_job(snapshot, "job-1")
+            self.assertIs(result.verdict, Verdict.CONTENDED)
+        finally:
+            server.shutdown()
+            server.server_close()
 
     def test_cli_json_output(self):
         process = subprocess.run(

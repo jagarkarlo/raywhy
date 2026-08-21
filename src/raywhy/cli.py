@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .ray_api import RayApiError, RayDashboardClient
 from .verdicts import explain_pending_job
 
 
@@ -14,7 +15,9 @@ def _parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     job = subparsers.add_parser("job", help="Explain one job from a normalized snapshot.")
     job.add_argument("job_id")
-    job.add_argument("--snapshot", type=Path, required=True, help="Path to a JSON snapshot.")
+    source = job.add_mutually_exclusive_group(required=True)
+    source.add_argument("--snapshot", type=Path, help="Path to a JSON snapshot.")
+    source.add_argument("--address", help="Read-only Ray dashboard URL, for example http://127.0.0.1:8265.")
     job.add_argument("--json", action="store_true", dest="as_json", help="Emit machine-readable JSON.")
     return parser
 
@@ -32,9 +35,12 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "job":
         try:
-            snapshot = json.loads(args.snapshot.read_text())
-        except (OSError, json.JSONDecodeError) as error:
-            print(f"raywhy: cannot read snapshot: {error}", file=sys.stderr)
+            if args.address:
+                snapshot = RayDashboardClient(args.address).snapshot(args.job_id)
+            else:
+                snapshot = json.loads(args.snapshot.read_text())
+        except (OSError, json.JSONDecodeError, RayApiError) as error:
+            print(f"raywhy: cannot read Ray data: {error}", file=sys.stderr)
             return 2
         result = explain_pending_job(snapshot, args.job_id)
         if args.as_json:

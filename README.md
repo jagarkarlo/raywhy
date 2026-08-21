@@ -105,6 +105,26 @@ The engine returns `UNSATISFIABLE`, `CONTENDED`, `AUTOSCALER_BLOCKED`,
 The four known-cause fixtures under `tests/fixtures/` are the executable
 contract for v0.1.
 
+## Test against a live Ray dashboard
+
+The live adapter is read-only. For a cluster you are authorized to inspect,
+forward the Ray dashboard port locally:
+
+```bash
+kubectl -n <namespace> port-forward svc/<ray-head-service> 8265:8265
+raywhy job <submission-id> --address http://127.0.0.1:8265
+```
+
+The adapter performs only `GET` requests to `/api/jobs/` and
+`/api/cluster_status`. It normalizes the responses in memory and never writes
+cluster data to disk. The current Ray Jobs API does not consistently expose the
+original resource request, so `raywhy` returns `UNKNOWN` rather than guessing
+when that information is absent.
+
+This first live adapter is intentionally conservative: placement groups,
+KubeRay worker-group bounds, pending duration, and blocker attribution are still
+future work.
+
 ## Status
 
 **Pre-alpha.** The fixture-driven verdict engine and CLI are working; live Ray
