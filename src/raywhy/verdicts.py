@@ -74,7 +74,16 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
         evidence_prefix.append("Resource request supplied explicitly with --resources.")
 
     unavailable = [node for node in nodes if node.get("condition") not in (None, "Ready")]
-    if not nodes or not schedulable:
+    nodes_observed = snapshot["nodes_observed"] if "nodes_observed" in snapshot else "nodes" in snapshot
+    if not nodes_observed:
+        return VerdictResult(
+            Verdict.UNKNOWN,
+            "The cluster returned no node inventory for this request.",
+            evidence_prefix,
+            "Refresh the dashboard data or provide a node-capacity snapshot.",
+        )
+
+    if not schedulable:
         return VerdictResult(
             Verdict.NODES_UNAVAILABLE,
             "The snapshot reports no schedulable nodes for this request.",

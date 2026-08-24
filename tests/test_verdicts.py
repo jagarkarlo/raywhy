@@ -45,6 +45,15 @@ class VerdictTests(unittest.TestCase):
         result = explain_pending_job(snapshot, "job-1")
         self.assertIs(result.verdict, Verdict.NODES_UNAVAILABLE)
 
+    def test_missing_node_inventory_is_unknown(self):
+        snapshot = {
+            "jobs": {"job-1": {"state": "PENDING", "request": {"resources": {"GPU": 1}}}},
+            "nodes": [],
+            "nodes_observed": False,
+        }
+        result = explain_pending_job(snapshot, "job-1")
+        self.assertIs(result.verdict, Verdict.UNKNOWN)
+
     def test_missing_request_is_not_guessed(self):
         snapshot = {
             "jobs": {"job-1": {"state": "PENDING"}},
