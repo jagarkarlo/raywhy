@@ -106,16 +106,16 @@ def _nodes(cluster_payload: object) -> list[dict[str, object]]:
     for index, raw in enumerate(raw_nodes):
         if not isinstance(raw, Mapping):
             continue
-        total = raw.get("total", raw.get("resources_total", {}))
-        available = raw.get("available", raw.get("resources_available", {}))
-        condition = raw.get("condition", "Ready")
+        total = _resource_map(raw.get("total", raw.get("resources_total", {})))
+        available = _resource_map(raw.get("available", raw.get("resources_available", {})))
+        condition = str(raw.get("condition", "Ready"))
         normalized.append(
             {
                 "id": str(raw.get("id", raw.get("node_id", index))),
                 "schedulable": bool(raw.get("schedulable", condition == "Ready")),
                 "condition": condition,
-                "total": dict(total) if isinstance(total, Mapping) else {},
-                "available": dict(available) if isinstance(available, Mapping) else {},
+                "total": total,
+                "available": available,
             }
         )
     return normalized
