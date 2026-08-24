@@ -5,6 +5,9 @@ from collections.abc import Mapping
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+JOBS_PATH = "/api/jobs/"
+CLUSTER_STATUS_PATH = "/api/cluster_status"
+
 
 class RayApiError(RuntimeError):
     """Raised when a read-only Ray API request cannot be completed."""
@@ -26,8 +29,8 @@ class RayDashboardClient:
             raise RayApiError(f"GET {path} failed: {error}") from error
 
     def snapshot(self, job_id: str) -> dict[str, object]:
-        jobs_payload = self._get("/api/jobs/")
-        cluster_payload = self._get("/api/cluster_status")
+        jobs_payload = self._get(JOBS_PATH)
+        cluster_payload = self._get(CLUSTER_STATUS_PATH)
         return normalize_ray_payloads(jobs_payload, cluster_payload, job_id)
 
 
