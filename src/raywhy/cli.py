@@ -63,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
         for job_id, job in snapshot.get("jobs", {}).items():
             if isinstance(job, dict) and str(job.get("state", "")).upper() == "PENDING":
                 results.append({"job_id": job_id, "result": explain_pending_job(snapshot, job_id).to_dict()})
+        results.sort(key=lambda item: item["job_id"])
         if args.as_json:
             print(json.dumps(results, indent=2))
         else:
