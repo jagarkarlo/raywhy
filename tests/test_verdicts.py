@@ -8,6 +8,7 @@ from threading import Thread
 
 from raywhy.ray_api import RayApiError, RayDashboardClient, normalize_ray_payloads
 from raywhy.models import Verdict
+from raywhy.resources import parse_resource_hint
 from raywhy.verdicts import explain_pending_job
 
 
@@ -80,6 +81,15 @@ class VerdictTests(unittest.TestCase):
         self.assertEqual(snapshot["jobs"]["a"]["state"], "PENDING")
         self.assertEqual(snapshot["jobs"]["b"]["state"], "SUCCEEDED")
         self.assertEqual(snapshot["jobs"]["c"]["state"], "UNKNOWN")
+
+    def test_parses_resource_hint(self):
+        self.assertEqual(parse_resource_hint("GPU=1,CPU=4"), {"GPU": 1.0, "CPU": 4.0})
+
+    def test_rejects_invalid_resource_hint(self):
+        for value in ("GPU", "GPU=", "GPU=one", "GPU=-1"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    parse_resource_hint(value)
 
     def test_live_client_reads_only_get_endpoints(self):
         class Handler(BaseHTTPRequestHandler):
