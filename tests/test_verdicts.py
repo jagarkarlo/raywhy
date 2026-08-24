@@ -67,6 +67,20 @@ class VerdictTests(unittest.TestCase):
         )
         self.assertEqual(snapshot["jobs"]["job-1"]["request"]["resources"], {"GPU": 2.0, "CPU": 4.0})
 
+    def test_normalizes_job_status_values(self):
+        snapshot = normalize_ray_payloads(
+            [
+                {"submission_id": "a", "status": "pending"},
+                {"submission_id": "b", "status": "SUCCEEDED"},
+                {"submission_id": "c", "status": "mysterious"},
+            ],
+            [],
+            "a",
+        )
+        self.assertEqual(snapshot["jobs"]["a"]["state"], "PENDING")
+        self.assertEqual(snapshot["jobs"]["b"]["state"], "SUCCEEDED")
+        self.assertEqual(snapshot["jobs"]["c"]["state"], "UNKNOWN")
+
     def test_live_client_reads_only_get_endpoints(self):
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):

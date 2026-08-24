@@ -69,6 +69,11 @@ def _number(value: object) -> float:
         return 0.0
 
 
+def _status(value: object) -> str:
+    normalized = str(value or "UNKNOWN").upper().replace("-", "_")
+    return {"RUNNING": "RUNNING", "PENDING": "PENDING", "SUCCEEDED": "SUCCEEDED", "FAILED": "FAILED", "STOPPED": "STOPPED"}.get(normalized, "UNKNOWN")
+
+
 def _resource_map(value: object) -> dict[str, float]:
     if isinstance(value, Mapping):
         return {str(name): _number(amount) for name, amount in value.items()}
@@ -124,7 +129,7 @@ def normalize_ray_payloads(jobs_payload: object, cluster_payload: object, job_id
         if not identifier:
             continue
         jobs[identifier] = {
-            "state": str(row.get("status", row.get("state", "UNKNOWN"))).upper(),
+            "state": _status(row.get("status", row.get("state", "UNKNOWN"))),
             "request": {"resources": _resources(row)},
         }
 
