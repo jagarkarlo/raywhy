@@ -24,3 +24,21 @@ class VerdictResult:
         result = asdict(self)
         result["verdict"] = self.verdict.value
         return result
+
+
+@dataclass(frozen=True)
+class JobRecord:
+    submission_id: str
+    state: str
+    resources: dict[str, float]
+    started_at: str | None = None
+    ended_at: str | None = None
+
+
+@dataclass(frozen=True)
+class NodeRecord:
+    node_id: str
+    total: dict[str, float]
+    available: dict[str, float]
+    schedulable: bool = True
+    condition: str = "Ready"
