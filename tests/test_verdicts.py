@@ -97,6 +97,16 @@ class VerdictTests(unittest.TestCase):
         apply_resource_hint(snapshot, "job-1", "GPU=1")
         self.assertEqual(snapshot["jobs"]["job-1"]["request"]["resources"], {"GPU": 1.0})
 
+    def test_queue_command_classifies_pending_jobs(self):
+        process = subprocess.run(
+            [sys.executable, "-m", "raywhy.cli", "queue", "--snapshot", str(FIXTURES / "contended.json"), "--json"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn('"job_id": "job-1"', process.stdout)
+        self.assertIn('"verdict": "CONTENDED"', process.stdout)
+
     def test_live_client_reads_only_get_endpoints(self):
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):
