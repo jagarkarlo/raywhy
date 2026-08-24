@@ -19,6 +19,7 @@ def _parser() -> argparse.ArgumentParser:
     source = job.add_mutually_exclusive_group(required=True)
     source.add_argument("--snapshot", type=Path, help="Path to a JSON snapshot.")
     source.add_argument("--address", help="Read-only Ray dashboard URL, for example http://127.0.0.1:8265.")
+    job.add_argument("--timeout", type=float, default=5.0, help="HTTP timeout in seconds (default: 5).")
     job.add_argument("--json", action="store_true", dest="as_json", help="Emit machine-readable JSON.")
     job.add_argument("--resources", help="Explicit request hint, for example GPU=1,CPU=4.")
     return parser
@@ -38,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "job":
         try:
             if args.address:
-                snapshot = RayDashboardClient(args.address).snapshot(args.job_id)
+                    snapshot = RayDashboardClient(args.address, timeout=args.timeout).snapshot(args.job_id)
             else:
                 snapshot = json.loads(args.snapshot.read_text())
             if args.resources:
