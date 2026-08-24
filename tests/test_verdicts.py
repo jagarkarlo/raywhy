@@ -84,6 +84,14 @@ class VerdictTests(unittest.TestCase):
         self.assertEqual(snapshot["jobs"]["b"]["state"], "SUCCEEDED")
         self.assertEqual(snapshot["jobs"]["c"]["state"], "UNKNOWN")
 
+    def test_normalizes_autoscaler_errors(self):
+        snapshot = normalize_ray_payloads(
+            [],
+            {"data": {"autoscalingError": "worker group reached maxReplicas"}},
+            "job-1",
+        )
+        self.assertEqual(snapshot["autoscaler"], {"blocked": True, "reason": "worker group reached maxReplicas"})
+
     def test_parses_resource_hint(self):
         self.assertEqual(parse_resource_hint("GPU=1,CPU=4"), {"GPU": 1.0, "CPU": 4.0})
 

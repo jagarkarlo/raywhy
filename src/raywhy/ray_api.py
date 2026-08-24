@@ -121,6 +121,18 @@ def _nodes(cluster_payload: object) -> list[dict[str, object]]:
     return normalized
 
 
+def _autoscaler(cluster_payload: object) -> dict[str, object]:
+    if not isinstance(cluster_payload, Mapping):
+        return {}
+    data = cluster_payload.get("data", cluster_payload)
+    if not isinstance(data, Mapping):
+        return {}
+    error = data.get("autoscalingError") or data.get("autoscaler_error")
+    if error:
+        return {"blocked": True, "reason": str(error)}
+    return {}
+
+
 def normalize_ray_payloads(jobs_payload: object, cluster_payload: object, job_id: str) -> dict[str, object]:
     """Translate standard Ray responses into raywhy's private snapshot contract."""
     jobs: dict[str, dict[str, object]] = {}
@@ -133,4 +145,4 @@ def normalize_ray_payloads(jobs_payload: object, cluster_payload: object, job_id
             "request": {"resources": _resources(row)},
         }
 
-    return {"jobs": jobs, "nodes": _nodes(cluster_payload)}
+    return {"jobs": jobs, "nodes": _nodes(cluster_payload), "autoscaler": _autoscaler(cluster_payload)}
