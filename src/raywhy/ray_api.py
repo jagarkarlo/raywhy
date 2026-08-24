@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from urllib.parse import urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -13,15 +14,28 @@ class RayApiError(RuntimeError):
     """Raised when a read-only Ray API request cannot be completed."""
 
 
+def _dashboard_url(address: str) -> str:
+    parsed = urlparse(address)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise RayApiError("dashboard address must be an http:// or https:// URL")
+    if parsed.username or parsed.password:
+        raise RayApiError("dashboard address must not contain credentials")
+    return address.rstrip("/")
+
+
 class RayDashboardClient:
     """Small read-only client for a locally reachable Ray dashboard."""
 
     def __init__(self, address: str, timeout: float = 5.0):
-        self.base_url = address.rstrip("/")
+        self.base_url = _dashboard_url(address)
         self.timeout = timeout
 
     def _get(self, path: str) -> object:
-        request = Request(f"{self.base_url}{path}", method="GET")
+        request = Request(
+            f"{self.base_url}{path}",
+            method="GET",
+            headers={"Accept": "application/json", "User-Agent": "raywhy/0.1"},
+        )
         try:
             with urlopen(request, timeout=self.timeout) as response:
                 return json.load(response)

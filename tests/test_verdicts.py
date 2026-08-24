@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Thread
 
-from raywhy.ray_api import RayDashboardClient, normalize_ray_payloads
+from raywhy.ray_api import RayApiError, RayDashboardClient, normalize_ray_payloads
 from raywhy.models import Verdict
 from raywhy.verdicts import explain_pending_job
 
@@ -90,6 +90,14 @@ class VerdictTests(unittest.TestCase):
         finally:
             server.shutdown()
             server.server_close()
+
+    def test_dashboard_address_rejects_credentials(self):
+        with self.assertRaises(RayApiError):
+            RayDashboardClient("http://user:password@127.0.0.1:8265")
+
+    def test_dashboard_address_requires_http_scheme(self):
+        with self.assertRaises(RayApiError):
+            RayDashboardClient("ray://127.0.0.1:8265")
 
     def test_cli_json_output(self):
         process = subprocess.run(
