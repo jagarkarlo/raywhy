@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .ray_api import RayApiError, RayDashboardClient
+from .resources import parse_resource_hint
 from .verdicts import explain_pending_job
 
 
@@ -19,6 +20,7 @@ def _parser() -> argparse.ArgumentParser:
     source.add_argument("--snapshot", type=Path, help="Path to a JSON snapshot.")
     source.add_argument("--address", help="Read-only Ray dashboard URL, for example http://127.0.0.1:8265.")
     job.add_argument("--json", action="store_true", dest="as_json", help="Emit machine-readable JSON.")
+    job.add_argument("--resources", help="Explicit request hint, for example GPU=1,CPU=4.")
     return parser
 
 
@@ -39,7 +41,12 @@ def main(argv: list[str] | None = None) -> int:
                 snapshot = RayDashboardClient(args.address).snapshot(args.job_id)
             else:
                 snapshot = json.loads(args.snapshot.read_text())
-        except (OSError, json.JSONDecodeError, RayApiError) as error:
+            if args.resources:
+                resources = parse_resource_hint(args.resources)
+                job = snapshot.setdefault("jobs", {}).setdefault(args.job_id, {})
+                request = job.setdefault("request", {})
+                request["resources"] = resources
+        except (OSError, ValueError, json.JSONDecodeError, RayApiError) as error:
             print(f"raywhy: cannot read Ray data: {error}", file=sys.stderr)
             return 2
         result = explain_pending_job(snapshot, args.job_id)

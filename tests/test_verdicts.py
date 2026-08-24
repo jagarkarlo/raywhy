@@ -169,6 +169,26 @@ class VerdictTests(unittest.TestCase):
         )
         self.assertIn('"verdict": "UNSATISFIABLE"', process.stdout)
 
+    def test_cli_resource_hint_completes_pending_job(self):
+        process = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "raywhy.cli",
+                "job",
+                "job-1",
+                "--snapshot",
+                str(FIXTURES / "contended.json"),
+                "--resources",
+                "GPU=1,CPU=2",
+                "--json",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn('"verdict": "CONTENDED"', process.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
