@@ -137,7 +137,7 @@ raywhy queue --address http://127.0.0.1:52193
 raywhy queue --address http://127.0.0.1:52193 --json
 ```
 
-In a live live Ray test, a real one-epoch submission was observed as `PENDING`
+In a live Ray test, a real one-epoch submission was observed as `PENDING`
 through this adapter and later moved to `RUNNING`. Its standard Ray job row did
 not contain resource metadata, so the correct result was `UNKNOWN`; the CLI did
 not infer GPU requirements from unrelated configuration. No cluster response
