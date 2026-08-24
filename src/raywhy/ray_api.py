@@ -66,11 +66,24 @@ def _number(value: object) -> float:
         return 0.0
 
 
+def _resource_map(value: object) -> dict[str, float]:
+    if isinstance(value, Mapping):
+        return {str(name): _number(amount) for name, amount in value.items()}
+    if isinstance(value, str):
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError:
+            return {}
+        return _resource_map(decoded)
+    return {}
+
+
 def _resources(row: Mapping[str, object]) -> dict[str, float]:
     for key in ("resources", "resource_request", "entrypoint_resources"):
         value = row.get(key)
-        if isinstance(value, Mapping):
-            return {str(name): _number(amount) for name, amount in value.items()}
+        resources = _resource_map(value)
+        if resources:
+            return resources
     return {}
 
 
