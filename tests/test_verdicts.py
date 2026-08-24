@@ -107,6 +107,26 @@ class VerdictTests(unittest.TestCase):
         with self.assertRaises(RayApiError):
             RayDashboardClient("ray://127.0.0.1:8265")
 
+    def test_live_client_rejects_scalar_json(self):
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                encoded = b"42"
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(encoded)))
+                self.end_headers()
+                self.wfile.write(encoded)
+
+            def log_message(self, *_):
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        Thread(target=server.serve_forever, daemon=True).start()
+        with self.assertRaises(RayApiError):
+            RayDashboardClient(f"http://127.0.0.1:{server.server_port}").snapshot("job-1")
+        server.shutdown()
+        server.server_close()
+
     def test_cli_json_output(self):
         process = subprocess.run(
             [

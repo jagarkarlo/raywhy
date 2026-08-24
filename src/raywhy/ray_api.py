@@ -38,7 +38,10 @@ class RayDashboardClient:
         )
         try:
             with urlopen(request, timeout=self.timeout) as response:
-                return json.load(response)
+                payload = json.load(response)
+                if not isinstance(payload, (Mapping, list)):
+                    raise RayApiError(f"GET {path} returned an unsupported JSON shape")
+                return payload
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
             raise RayApiError(f"GET {path} failed: {error}") from error
 
