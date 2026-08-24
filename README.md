@@ -121,14 +121,37 @@ cluster data to disk. The current Ray Jobs API does not consistently expose the
 original resource request, so `raywhy` returns `UNKNOWN` rather than guessing
 when that information is absent.
 
+When the request is known from the submission command, provide it explicitly;
+the hint is applied in memory and marked as user-supplied evidence:
+
+```bash
+raywhy job <submission-id> \
+  --address http://127.0.0.1:52193 \
+  --resources GPU=1,CPU=4
+```
+
+To classify every pending job visible through the dashboard:
+
+```bash
+raywhy queue --address http://127.0.0.1:52193
+raywhy queue --address http://127.0.0.1:52193 --json
+```
+
+In a live live Ray test, a real one-epoch submission was observed as `PENDING`
+through this adapter and later moved to `RUNNING`. Its standard Ray job row did
+not contain resource metadata, so the correct result was `UNKNOWN`; the CLI did
+not infer GPU requirements from unrelated configuration. No cluster response
+was committed to this repository.
+
 This first live adapter is intentionally conservative: placement groups,
 KubeRay worker-group bounds, pending duration, and blocker attribution are still
 future work.
 
 ## Status
 
-**Pre-alpha.** The fixture-driven verdict engine and CLI are working; live Ray
-and Kubernetes adapters are next. See [ROADMAP.md](ROADMAP.md).
+**Pre-alpha.** The fixture-driven verdict engine, live dashboard reader, queue
+command, and explicit resource hints are working. Placement groups and
+Kubernetes adapters are next. See [ROADMAP.md](ROADMAP.md).
 
 ## Contributing
 

@@ -23,6 +23,9 @@ unimplemented until the normalized contract is stable.
 
 Where the genuinely hard logic lives.
 
+- [x] Read-only Ray dashboard client for jobs and cluster status
+- [x] Queue command for all pending normalized jobs
+- [x] Explicit resource hints when the Jobs API omits the request
 - [ ] Full placement group parsing: bundles, `PACK` / `SPREAD` / `STRICT_PACK` / `STRICT_SPREAD`
 - [ ] Bin-packing feasibility check against real node shapes, not just totals
 - [ ] Head-of-line blocker attribution — name the specific job/actor holding what you need
