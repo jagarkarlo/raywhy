@@ -145,4 +145,17 @@ def normalize_ray_payloads(jobs_payload: object, cluster_payload: object, job_id
             "request": {"resources": _resources(row)},
         }
 
-    return {"jobs": jobs, "nodes": _nodes(cluster_payload), "autoscaler": _autoscaler(cluster_payload)}
+    nodes = _nodes(cluster_payload)
+    return {
+        "jobs": jobs,
+        "nodes": nodes,
+        "nodes_observed": bool(nodes) or _has_node_inventory(cluster_payload),
+        "autoscaler": _autoscaler(cluster_payload),
+    }
+
+
+def _has_node_inventory(cluster_payload: object) -> bool:
+    if not isinstance(cluster_payload, Mapping):
+        return False
+    data = cluster_payload.get("data", cluster_payload)
+    return isinstance(data, Mapping) and isinstance(data.get("clusterStatus"), list)
