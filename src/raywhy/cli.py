@@ -11,6 +11,13 @@ from .resources import parse_resource_hint
 from .verdicts import explain_pending_job
 
 
+def apply_resource_hint(snapshot: dict[str, Any], job_id: str, hint: str) -> None:
+    resources = parse_resource_hint(hint)
+    job = snapshot.setdefault("jobs", {}).setdefault(job_id, {})
+    request = job.setdefault("request", {})
+    request["resources"] = resources
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="raywhy", description="Explain why a Ray job is pending.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -43,10 +50,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 snapshot = json.loads(args.snapshot.read_text())
             if args.resources:
-                resources = parse_resource_hint(args.resources)
-                job = snapshot.setdefault("jobs", {}).setdefault(args.job_id, {})
-                request = job.setdefault("request", {})
-                request["resources"] = resources
+                apply_resource_hint(snapshot, args.job_id, args.resources)
         except (OSError, ValueError, json.JSONDecodeError, RayApiError) as error:
             print(f"raywhy: cannot read Ray data: {error}", file=sys.stderr)
             return 2

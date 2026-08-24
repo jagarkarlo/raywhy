@@ -7,6 +7,7 @@ from pathlib import Path
 from threading import Thread
 
 from raywhy.ray_api import RayApiError, RayDashboardClient, normalize_ray_payloads
+from raywhy.cli import apply_resource_hint
 from raywhy.models import Verdict
 from raywhy.resources import parse_resource_hint
 from raywhy.verdicts import explain_pending_job
@@ -90,6 +91,11 @@ class VerdictTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(ValueError):
                     parse_resource_hint(value)
+
+    def test_applies_resource_hint_in_memory(self):
+        snapshot = {"jobs": {"job-1": {"state": "PENDING"}}}
+        apply_resource_hint(snapshot, "job-1", "GPU=1")
+        self.assertEqual(snapshot["jobs"]["job-1"]["request"]["resources"], {"GPU": 1.0})
 
     def test_live_client_reads_only_get_endpoints(self):
         class Handler(BaseHTTPRequestHandler):
