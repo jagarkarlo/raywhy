@@ -69,6 +69,10 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
             "Inspect autoscaler limits, quotas, cooldowns, and worker-group max replicas.",
         )
 
+    evidence_prefix = []
+    if job.get("request", {}).get("source") == "explicit-cli-hint":
+        evidence_prefix.append("Resource request supplied explicitly with --resources.")
+
     unavailable = [node for node in nodes if node.get("condition") not in (None, "Ready")]
     if not nodes or not schedulable:
         return VerdictResult(
@@ -82,7 +86,7 @@ def explain_pending_job(snapshot: Mapping[str, Any], job_id: str) -> VerdictResu
         return VerdictResult(
             Verdict.UNSATISFIABLE,
             "No schedulable node shape can satisfy this job's resource request.",
-            [f"Requested resources: {request or 'none'}"],
+            evidence_prefix + [f"Requested resources: {request or 'none'}"],
             "Change the resource request or add a node type that can host it.",
         )
 

@@ -16,6 +16,7 @@ def apply_resource_hint(snapshot: dict[str, Any], job_id: str, hint: str) -> Non
     job = snapshot.setdefault("jobs", {}).setdefault(job_id, {})
     request = job.setdefault("request", {})
     request["resources"] = resources
+    request["source"] = "explicit-cli-hint"
 
 
 def _parser() -> argparse.ArgumentParser:
