@@ -40,9 +40,9 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _human(job_id: str, result: Any) -> str:
-    lines = [f"{result.verdict.value}", f"Job       {job_id}", f"Verdict   {result.summary}"]
+    lines = [f"{result.verdict.value}", f"Job       {job_id}", f"Why       {result.summary}"]
     for evidence in result.evidence:
-        lines.append(f"Evidence  {evidence}")
+        lines.append(f"Evidence  - {evidence}")
     if result.fix:
         lines.append(f"Fix       {result.fix}")
     return "\n".join(lines)
