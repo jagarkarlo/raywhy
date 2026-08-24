@@ -8,6 +8,7 @@ from typing import Any
 
 from .ray_api import RayApiError, RayDashboardClient
 from .resources import parse_resource_hint
+from .snapshot import SnapshotError, validate_snapshot
 from .verdicts import explain_pending_job
 
 
@@ -56,8 +57,8 @@ def main(argv: list[str] | None = None) -> int:
                 client = RayDashboardClient(args.address, timeout=args.timeout)
                 snapshot = client.snapshot("")
             else:
-                snapshot = json.loads(args.snapshot.read_text())
-        except (OSError, json.JSONDecodeError, RayApiError) as error:
+                snapshot = validate_snapshot(json.loads(args.snapshot.read_text()))
+        except (OSError, json.JSONDecodeError, RayApiError, SnapshotError) as error:
             print(f"raywhy: cannot read Ray data: {error}", file=sys.stderr)
             return 2
         results = []
@@ -74,12 +75,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "job":
         try:
             if args.address:
-                    snapshot = RayDashboardClient(args.address, timeout=args.timeout).snapshot(args.job_id)
+                snapshot = RayDashboardClient(args.address, timeout=args.timeout).snapshot(args.job_id)
             else:
-                snapshot = json.loads(args.snapshot.read_text())
+                snapshot = validate_snapshot(json.loads(args.snapshot.read_text()))
             if args.resources:
                 apply_resource_hint(snapshot, args.job_id, args.resources)
-        except (OSError, ValueError, json.JSONDecodeError, RayApiError) as error:
+        except (OSError, ValueError, json.JSONDecodeError, RayApiError, SnapshotError) as error:
             print(f"raywhy: cannot read Ray data: {error}", file=sys.stderr)
             return 2
         result = explain_pending_job(snapshot, args.job_id)

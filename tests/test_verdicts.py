@@ -10,6 +10,7 @@ from raywhy.ray_api import RayApiError, RayDashboardClient, normalize_ray_payloa
 from raywhy.cli import apply_resource_hint
 from raywhy.models import Verdict
 from raywhy.resources import parse_resource_hint
+from raywhy.snapshot import SnapshotError, validate_snapshot
 from raywhy.verdicts import explain_pending_job
 
 
@@ -106,6 +107,13 @@ class VerdictTests(unittest.TestCase):
         )
         self.assertIn('"job_id": "job-1"', process.stdout)
         self.assertIn('"verdict": "CONTENDED"', process.stdout)
+
+    def test_snapshot_validation_rejects_invalid_shapes(self):
+        invalid = [None, [], {"jobs": []}, {"nodes": {}}, {"jobs": {"job-1": {}}}]
+        for snapshot in invalid:
+            with self.subTest(snapshot=snapshot):
+                with self.assertRaises(SnapshotError):
+                    validate_snapshot(snapshot)
 
     def test_live_client_reads_only_get_endpoints(self):
         class Handler(BaseHTTPRequestHandler):
